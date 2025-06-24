@@ -344,7 +344,7 @@ impl Function {
         let params = ast.remove(0);
         if let NekoList(v) = params.copy_value() {
             let mut cfid = "".to_string();
-            for p in v { //循环：遍历所有形参                
+            for p in v { //循环：遍历所有形参
                 if let NekoSymbol(s) = p.copy_value() {
                     if s.is_fuction_identifier(n_env.clone()) {
                         //读取函数标识符
@@ -362,8 +362,8 @@ impl Function {
                         }
                     },
                     "&optional" => { //可选参数的处理
-                        if !args.is_empty() {
-                            let mut ns = p.copy_value();
+                        if !args.is_empty() { //参数不为空
+                            let mut ns = p.copy_value(); //形参
                             if let NekoList(mut l) = p.copy_value() {
                                 if l.len() == 2 {
                                     let n = l.remove(0);
@@ -374,20 +374,67 @@ impl Function {
                                 let val = args.remove(0);
                                 n_env.set(s.clone(),val);
                             }
-                        } else {
-                            if let NekoList(mut l) = p.copy_value() {
-                                if l.len() == 2 {
-                                    let n = l.remove(0);
-                                    if let NekoSymbol(s) = n.copy_value() {
-                                        let val = l.remove(0);
-                                        n_env.set(s.clone(),val);
-                                    }
+                        } else if let NekoList(mut l) = p.copy_value() {
+                            //参数已空但是还有带默认值的形参没处理
+                            if l.len() == 2 {
+                                let n = l.remove(0);
+                                if let NekoSymbol(s) = n.copy_value() {
+                                    let val = l.remove(0);
+                                    n_env.set(s.clone(),val);
                                 }
                             }
                         }
                     },
                     "&key" => {
-                        
+                        if !args.is_empty() {
+                            let mut ns = p.copy_value(); //形参
+                            if let NekoList(mut l) = p.copy_value() {
+                                //获取默认值列表中的形参
+                                if l.len() == 2 {
+                                    let n = l.remove(0);
+                                    ns = n.copy_value();
+                                }
+                            }
+                            if let NekoSymbol(s) = ns { //处理形参的符号
+                                let mut key = s.val();
+                                key.insert(0,':');
+                                let mut position:usize = 0;
+                                for arg in args.clone() {
+                                    if let NekoKeyword(keyword) = arg.copy_value() {
+                                        if keyword != key {
+                                            continue;
+                                        }
+                                        let mut vals:Vec<NekoType> = Vec::new();
+                                        //到下一个关键字为止，将所有参数提取出来
+                                        for val in &args[position+1..] {
+                                            if !val.is_keyword() {
+                                                vals.push(val.clone());
+                                            } else {
+                                                break;
+                                            }
+                                        }
+                                        if vals.len() > 1 {
+                                            let val = NekoType::list(vals);
+                                            env.set(s.clone(),val);
+                                        } else if vals.len() == 1 {
+                                            env.set(s.clone(),vals.remove(0));
+                                        } else {
+                                            return NekoType::err("关键字后至少应有一个参数".to_string())
+                                        }
+                                    }
+                                    position = position + 1;
+                                }
+                            }
+                        } else if let NekoList(mut l) = p.copy_value() {
+                            //参数已空但是还有带默认值的形参没处理
+                            if l.len() == 2 {
+                                let n = l.remove(0);
+                                if let NekoSymbol(s) = n.copy_value() {
+                                    let val = l.remove(0);
+                                    n_env.set(s.clone(),val);
+                                }
+                            }
+                        }
                     },
                     _ => {
                         if args.is_empty() { //循环内参数为空报错
