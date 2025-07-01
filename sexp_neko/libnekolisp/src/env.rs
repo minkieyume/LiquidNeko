@@ -3,9 +3,13 @@ use alloc::rc::Rc;
 use core::cell::RefCell;
 use alloc::string::ToString;
 use hashbrown::HashMap;
+use core::hash::{Hash, Hasher};
 use crate::nekocore::Core;
 use crate::types::NekoType;
 use crate::types::Symbol;
+
+pub const NEKOS:&str = "*NEKOS*";
+pub const CONTEXT:&str = "*CONTEXT*";
 
 #[derive(Clone)]
 pub struct EnvType {
@@ -109,5 +113,25 @@ impl Env {
 
     pub fn get_by_str(&self,key:&str) -> NekoType {
         self.get(&Symbol(key.to_string()))
+    }
+}
+
+impl Hash for EnvType {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.outer.hash(state);
+        self.symbols.hash(state);
+        for k in self.data.keys() {
+            k.hash(state);
+        }
+        for v in self.data.values() {
+            v.hash(state);
+        }
+        self.tco.hash(state);
+    }
+}
+
+impl Hash for Env {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.borrow().hash(state)
     }
 }

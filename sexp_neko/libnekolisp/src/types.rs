@@ -1,5 +1,7 @@
 use alloc::{vec::Vec, string::String, boxed::Box ,rc::Rc};
 use alloc::string::ToString;
+use hashbrown::HashMap;
+use core::hash::{Hash, Hasher};
 use core::ops::{Add,Sub,Mul,Div,Fn};
 use core::cmp::{Eq,PartialEq};
 use core::cell::RefCell;
@@ -18,9 +20,12 @@ pub enum NekoValue {
     NekoBool(Option<bool>),
     NekoKeyword(String),
     NekoList(Vec<NekoType>),
+    NekoDict(HashMap<NekoType,NekoType>),
     NekoFn(Function),
     NekoErr(String),
     NekoAtom(Rc<RefCell<Atom>>),
+    NekoStruct,
+    NekoNeko(Env),
     NekoTrue,
     NekoNil
 }
@@ -28,10 +33,10 @@ pub enum NekoValue {
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct Symbol(pub String);
 
-#[derive(Clone)]
+#[derive(Clone, Hash)]
 pub struct NekoType(pub Rc<NekoValue>);
 
-#[derive(Clone)]
+#[derive(Clone,Hash)]
 pub struct Atom(pub NekoType);
 
 #[derive(Clone)]
@@ -177,6 +182,14 @@ impl NekoType {
         NekoType(Rc::new(NekoErr(s)))
     }
 
+    pub fn dict(d:HashMap<NekoType,NekoType>) -> NekoType {
+        NekoType(Rc::new(NekoDict(d)))
+    }
+
+    pub fn neko(e:Env) -> NekoType {
+        NekoType(Rc::new(NekoNeko(e)))
+    }
+
     pub fn is_err(&self) -> bool {
         match *self.0 {
             NekoErr(_) => true,
@@ -233,6 +246,9 @@ impl NekoType {
             NekoString(_) => "string",
             NekoErr(_) => "err",
             NekoKeyword(_) => "keyword",
+            NekoNeko(_) => "neko",
+            NekoDict(_) => "dictionary",
+            NekoFn(_) => "function",
             NekoTrue => "true",
             NekoNil => "nil",
             _ => "unknown",
@@ -392,7 +408,11 @@ impl Function {
                                 //获取默认值列表中的形参
                                 if l.len() == 2 {
                                     let n = l.remove(0);
+                                    let val = l.remove(0);
                                     ns = n.copy_value();
+                                    if let NekoSymbol(symb) = n.copy_value() {
+                                        n_env.set(symb.clone(),val);
+                                    }
                                 }
                             }
                             if let NekoSymbol(s) = ns { //处理形参的符号
@@ -415,9 +435,9 @@ impl Function {
                                         }
                                         if vals.len() > 1 {
                                             let val = NekoType::list(vals);
-                                            env.set(s.clone(),val);
+                                            n_env.set(s.clone(),val);
                                         } else if vals.len() == 1 {
-                                            env.set(s.clone(),vals.remove(0));
+                                            n_env.set(s.clone(),vals.remove(0));
                                         } else {
                                             return NekoType::err("关键字后至少应有一个参数".to_string())
                                         }
@@ -627,5 +647,40 @@ fn floor_f64(x:f64) -> i64 {
             return truncated - 1;
         }
         return truncated;
+    }
+}
+
+impl Hash for NekoValue {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match self{
+            Self::NekoSymbol(s) => {s.hash(state);},
+            Self::NekoList(l) => {
+                for n in l {
+                    n.hash(state);
+                }
+            },
+            Self::NekoString(s) => {s.hash(state);},
+            Self::NekoChar(s) => {s.hash(state);},
+            Self::NekoKeyword(s) => {s.hash(state);},
+            Self::Nekoi64(i) => {i.to_string().hash(state);},
+            Self::Nekof64(i) => {i.to_string().hash(state);},
+            Self::NekoErr(e) => {e.hash(state);},
+            Self::NekoBool(b) => {b.hash(state);},
+            Self::NekoTrue => {true.hash(state);},
+            Self::NekoNil => {false.hash(state);},
+            Self::NekoAtom(atom) => {
+                let a = atom.borrow_mut();
+                a.hash(state)
+            },
+            Self::NekoDict(d) => {
+                for key in d.keys() {
+                    key.hash(state)
+                }
+                for val in d.values() {
+                    val.hash(state)
+                }
+            },
+            _ => {},
+        }
     }
 }

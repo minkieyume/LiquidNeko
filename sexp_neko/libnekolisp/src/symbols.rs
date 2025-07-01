@@ -3,6 +3,7 @@ use alloc::vec;
 use alloc::string::ToString;
 use core::cell::RefCell;
 use hashbrown::HashMap;
+use core::hash::{Hash, Hasher};
 use SymbolTypes::*;
 use crate::types::NekoType;
 
@@ -36,7 +37,8 @@ impl SymbolRef {
         symbolref.set("keyword",SymbolChar(':'));
         symbolref.set("split",SymbolCharList(vec![' ',',','\n']));
         symbolref.set("function_identifier",SymbolChar('&'));
-        symbolref.set("special",SymbolSpecialChars);        
+        symbolref.set("special",SymbolSpecialChars);
+        symbolref.set("namespace",SymbolChar(':'));
         symbolref.set_reader_marco(SymbolChar('@'),NekoType::symbol("deref".to_string()));
         symbolref.set_reader_marco(SymbolChar('\''),NekoType::symbol("quote".to_string()));
         symbolref.set_reader_marco(SymbolChar('`'),NekoType::symbol("quasiquote".to_string()));
@@ -188,5 +190,28 @@ fn char_pair(c:char,s:SymbolTypes) -> bool {
         },
         SymbolSpecialChars => c.is_ascii_punctuation(),
         _ => false,
+    }
+}
+
+impl Hash for Symbols {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for r in self.reader_marcos.keys() {
+            r.hash(state);
+        }
+        for val in self.reader_marcos.values() {
+            val.hash(state);
+        }
+        for key in self.data.keys() {
+            key.hash(state)
+        }
+        for val in self.data.values() {
+            val.hash(state)
+        }
+    }
+}
+
+impl Hash for SymbolRef {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.borrow().hash(state)
     }
 }
