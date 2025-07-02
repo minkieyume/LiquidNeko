@@ -24,13 +24,16 @@ pub struct Env(Rc<RefCell<EnvType>>);
 
 impl Env {
     pub fn new(outer:Option<Env>) -> Env {
-        Env(Rc::new(RefCell::new(EnvType {
+        let env = Env(Rc::new(RefCell::new(EnvType {
             outer: outer.clone().map(|e| e.clone()),
             symbols:outer.clone().map_or(SymbolRef::new(),
                                  |e| e.get_symbol()),
             data: HashMap::new(),
             tco:None,
-        })))
+        })));
+        env.set_by_str(NEKOS,NekoType::dict(HashMap::new()));
+        env.set_by_str(CONTEXT,NekoType::dict(HashMap::new()));
+        return env;
     }
 
     pub fn get_symbol(&self) -> SymbolRef {
@@ -52,7 +55,9 @@ impl Env {
             }
             
         }
-        env
+        env.set_by_str(NEKOS,NekoType::dict(HashMap::new()));
+        env.set_by_str(CONTEXT,NekoType::dict(HashMap::new()));
+        return env;
     }
 
     pub fn default() -> Env {

@@ -36,7 +36,7 @@ pub struct Symbol(pub String);
 #[derive(Clone, Hash)]
 pub struct NekoType(pub Rc<NekoValue>);
 
-#[derive(Clone,Hash)]
+#[derive(Clone,Hash,PartialEq)]
 pub struct Atom(pub NekoType);
 
 #[derive(Clone)]
@@ -186,8 +186,22 @@ impl NekoType {
         NekoType(Rc::new(NekoDict(d)))
     }
 
+    pub fn is_dict(&self) -> bool {
+        match *self.0 {
+            NekoDict(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn neko(e:Env) -> NekoType {
         NekoType(Rc::new(NekoNeko(e)))
+    }
+
+    pub fn is_neko(&self) -> bool {
+        match *self.0 {
+            NekoNeko(_) => true,
+            _ => false,
+        }
     }
 
     pub fn is_err(&self) -> bool {
@@ -277,6 +291,13 @@ impl Symbol {
             return symbol.pair_char(c,"function_identifier");
         }
         return false;
+    }
+
+    pub fn split_namespace(&self,env:Env) -> Vec<&str> {
+        let symbols = env.get_symbol();
+        let nc = symbols.get_char("namespace");
+        let namespace = nc.unwrap();
+        self.0.split(namespace).collect()
     }
 }
 
@@ -649,6 +670,55 @@ fn floor_f64(x:f64) -> i64 {
         return truncated;
     }
 }
+
+impl PartialEq for NekoType {
+    fn eq(&self, other: &Self) -> bool {
+        match self.copy_value() {
+            Nekoi64(a) => {
+                if let Nekoi64(b) = other.copy_value() {
+                    return a==b;
+                } else if let Nekof64(b) = other.copy_value() {
+                    if fract_f64(b) == 0.0 {
+                        return a == b as i64;
+                    }
+                }
+            },
+            Nekof64(a) => {
+                if let Nekof64(b) = other.copy_value() {
+                    return a==b;
+                } else if let Nekoi64(b) = other.copy_value() {
+                    if fract_f64(a) == 0.0 {
+                        return a as i64 == b;
+                    }
+                }
+            },
+            NekoString(a) => {
+                if let NekoString(b)  = other.copy_value() {
+                    return a == b;
+                }
+            },
+            NekoSymbol(a) => {
+                if let NekoSymbol(b)  = other.copy_value() {
+                    return a == b;
+                }
+            },
+            NekoKeyword(a) => {
+                if let NekoKeyword(b)  = other.copy_value() {
+                    return a == b;
+                }
+            },
+            NekoList(al) => {
+                if let NekoList(bl)  = other.copy_value() {
+                    return al == bl;
+                }
+            },
+            _ => {}
+        }
+        false
+    }
+}
+
+impl Eq for NekoType {}
 
 impl Hash for NekoValue {
     fn hash<H: Hasher>(&self, state: &mut H) {

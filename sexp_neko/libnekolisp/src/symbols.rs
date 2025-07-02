@@ -72,6 +72,28 @@ impl SymbolRef {
             None => None,
         }
     }
+
+    pub fn get_char(&self,key:&str) -> Option<char>{
+        let s = self.0.borrow();
+        let val = s.data.get(&key.to_string());
+        match val {
+            Some(n) => {
+                match n {
+                    SymbolChar(c) => {
+                        return Some(c.clone());
+                    },
+                    SymbolCharList(cl) => {
+                        let c = cl.first().clone().unwrap();
+                        return Some(c.clone());
+                    }
+                    _ => {
+                        return None
+                    }
+                }
+            },
+            None => None,
+        }
+    }
     
     pub fn sexp_direction(&self,c:char) -> Option<bool> {
         //如果char是sexp符号，则获取方向的判定。
