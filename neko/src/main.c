@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
     sexp ctx = init_sexp();
     nng_socket *sock = NULL;
     nng_socket node;
-    if (argc >= 3) {
+    if (argc >= 2) {
 	node = init_node(argc, argv);
 	sock = &node;
 	if (sock != NULL) {
