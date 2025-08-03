@@ -49,7 +49,7 @@ void send_sexp(nng_socket sock, char *arg) {
     // SEND
     int rv;
     size_t sz;
-    sz = strlen(arg) + 1; // '\0' too
+    sz = strlen(arg) + 1;
     printf("发送完毕");
     if ((rv = nng_send(sock, arg, sz, 0)) != 0) {
 	fatal("nng_send", rv);
@@ -77,15 +77,13 @@ nng_socket init_node(int argc, char **argv) {
     if ((rv = nng_listen(sock, argv[2], NULL, 0)) != 0) {
 	fatal("nng_listen", rv);
     }
- 
-    sleep(1); // wait for peers to bind
+    
     if (argc >= 3) {
 	for (int x = 3; x < argc; x++) {
-	    if ((rv = nng_dial(sock, argv[x], NULL, 0)) != 0) {
-		fatal("nng_dial", rv);
-	    }
+	    nng_dial(sock, argv[x], NULL, NNG_FLAG_NONBLOCK);
 	}
     }
+    
     sleep(1); //等待连接建立
     return sock;
 }
