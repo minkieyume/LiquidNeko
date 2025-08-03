@@ -97,6 +97,7 @@ Neko: CMakeFiles/Neko.dir/src/main.c.o
 Neko: CMakeFiles/Neko.dir/build.make
 Neko: CMakeFiles/Neko.dir/compiler_depend.ts
 Neko: /usr/lib64/libchibi-scheme.so
+Neko: /usr/lib64/libnng.so
 Neko: CMakeFiles/Neko.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/MinkieYume/LocalWork/Program/LiquidNeko/neko/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C executable Neko"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Neko.dir/link.txt --verbose=$(VERBOSE)

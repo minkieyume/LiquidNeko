@@ -16,8 +16,6 @@ void fatal(const char *func, int rv) {
     exit(1);
 }
 
-
-
 void load_script(sexp ctx, char* str) {
     sexp_gc_var2(obj1, obj2);
     sexp_gc_preserve2(ctx, obj1, obj2);
@@ -41,7 +39,8 @@ void recieve_sexp(nng_socket sock) {
     char *buf = NULL;
     size_t sz;
     nng_recv(sock, &buf, &sz, NNG_FLAG_ALLOC);
-    printf("%s\n", buf);
+    printf("接收：%s\n", buf);    
+    printf("> ");
     nng_free(buf, sz);
 }
 

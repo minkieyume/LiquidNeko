@@ -1,1 +1,1 @@
-/usr/bin/cc -Wl,--dependency-file=CMakeFiles/Neko.dir/link.d CMakeFiles/Neko.dir/src/main.c.o -o Neko  /usr/lib64/libchibi-scheme.so
+/usr/bin/cc -Wl,--dependency-file=CMakeFiles/Neko.dir/link.d CMakeFiles/Neko.dir/src/main.c.o -o Neko  /usr/lib64/libchibi-scheme.so /usr/lib64/libnng.so
