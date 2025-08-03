@@ -39,7 +39,7 @@ void recieve_sexp(nng_socket sock) {
     char *buf = NULL;
     size_t sz;
     nng_recv(sock, &buf, &sz, NNG_FLAG_ALLOC);
-    printf("接收：%s\n", buf);    
+    printf("接收：%s\n", buf);
     printf("> ");
     nng_free(buf, sz);
 }
@@ -48,10 +48,12 @@ void send_sexp(nng_socket sock, char *arg) {
     // SEND
     int rv;
     size_t sz;
-    sz = strlen(arg) + 1;
-    printf("发送完毕");
-    if ((rv = nng_send(sock, arg, sz, 0)) != 0) {
-	fatal("nng_send", rv);
+    sz = strlen(arg);
+    printf("发送完毕\n");
+    rv = nng_send(sock, arg, sz, 0);
+    if (rv != 0) {
+	fprintf(stderr, "发送错误 error: %s\n", nng_strerror(rv));
+	return;
     }
 }
 
