@@ -1,0 +1,4 @@
+#+TITLE: Neko模块
+
+* 前言
+Neko模块是所有LiquidNeko程序默认必须实现的基础模块，Neko模块在LiquidNeko中的定义声明是neko。

@@ -1,0 +1,6 @@
+(define %boopinfo
+  '((program . "neko-repl")    
+    (nekomod . ("neko"))))
+
+(define (boop . values)
+  `(,@%boopinfo ,@values))

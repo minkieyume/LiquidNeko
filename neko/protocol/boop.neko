@@ -1,0 +1,7 @@
+(define boop
+  '((requester . "neko1")             ;发出boop的实例或节点名
+    (requester-program . "neko-repl") ;发出boop的程序名
+    (to . "neko2")                    ;boop请求的实例或节点名
+    (to-program . "neko-repl")        ;boop请求的程序名
+    (nekomod . ("neko"))              ;boop需要的模块名
+    (context . ())))                  ;boop传递的表达式内容
